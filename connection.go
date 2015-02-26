@@ -95,6 +95,9 @@ type idPayload struct {
 const (
 	//Max number of bytes in a TCP frame
 	TCP_FRAME_MAX = 65535
+	// Apple development gateway
+	APNSDevelopmentGateway = "gateway.sandbox.push.apple.com"
+	APNSProductionGateway  = "gateway.push.apple.com"
 )
 
 // This enumerates the response codes that Apple defines
@@ -191,6 +194,25 @@ func NewAPNSConnection(config *APNSConfig) (*APNSConnection, error) {
 	tlsSocket.SetDeadline(time.Time{})
 
 	return socketAPNSConnection(tlsSocket, config), nil
+}
+
+func (c *APNSConnection) SendSingle(payload *Payload) *ConnectionClose {
+	var sendError *ConnectionClose
+	select {
+	case c.SendChannel <- payload:
+	case sendError = <-c.CloseChannel:
+	}
+
+	if sendError != nil {
+		return sendError
+	}
+
+	select {
+	case <-time.After(1 * time.Second):
+	case sendError = <-c.CloseChannel:
+	}
+
+	return sendError
 }
 
 //Internal create APNS connection from raw socket
