@@ -196,6 +196,9 @@ func NewAPNSConnection(config *APNSConfig) (*APNSConnection, error) {
 	return socketAPNSConnection(tlsSocket, config), nil
 }
 
+// SendSingle is a blocking send, useful where you want confidence that
+// a message was delivered, so that, for instance, you can delete a
+// corresponding database row.
 func (c *APNSConnection) SendSingle(payload *Payload) *ConnectionClose {
 	var sendError *ConnectionClose
 	select {
