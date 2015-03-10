@@ -407,7 +407,8 @@ func (c *APNSConnection) bufferPayload(idPayloadObj *idPayload) {
 		binary.Write(c.inFlightItemByteBuffer, binary.BigEndian, idPayloadObj.Payload.Priority)
 	}
 
-	//check to see if we should flush inFlightTCPBuffer
+	//check to see if we should flush inFlightFrameByteBuffer before
+	//adding this payload to the frame buffer.
 	if c.inFlightFrameByteBuffer.Len()+c.inFlightItemByteBuffer.Len() > TCP_FRAME_MAX {
 		c.flushBufferToSocket()
 	}
@@ -427,8 +428,7 @@ func (c *APNSConnection) bufferPayload(idPayloadObj *idPayload) {
 //Write tcp frame buffer to socket and reset when done
 //Close on error
 func (c *APNSConnection) flushBufferToSocket() {
-	//if buffer not created, or zero length, or just has header information written
-	//do nothing
+	//if buffer not created, or zero length do nothing
 	if c.inFlightFrameByteBuffer == nil || c.inFlightFrameByteBuffer.Len() == 0 {
 		return
 	}
