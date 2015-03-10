@@ -98,6 +98,9 @@ const (
 	// Apple development gateway
 	APNSDevelopmentGateway = "gateway.sandbox.push.apple.com"
 	APNSProductionGateway  = "gateway.push.apple.com"
+	//Number of bytes used in the Apple Notification Header
+	//command is 1 byte, frame length is 4 bytes
+	NOTIFICATION_HEADER_SIZE = 5
 )
 
 // This enumerates the response codes that Apple defines
@@ -407,9 +410,9 @@ func (c *APNSConnection) bufferPayload(idPayloadObj *idPayload) {
 		binary.Write(c.inFlightItemByteBuffer, binary.BigEndian, idPayloadObj.Payload.Priority)
 	}
 
-	//check to see if we should flush inFlightFrameByteBuffer before
+	//check to see if we should flush inFlightFrameByteBuffer
 	//adding this payload to the frame buffer.
-	if c.inFlightFrameByteBuffer.Len()+c.inFlightItemByteBuffer.Len() > TCP_FRAME_MAX {
+	if c.inFlightFrameByteBuffer.Len()+c.inFlightItemByteBuffer.Len()+NOTIFICATION_HEADER_SIZE > TCP_FRAME_MAX {
 		c.flushBufferToSocket()
 	}
 
@@ -428,7 +431,7 @@ func (c *APNSConnection) bufferPayload(idPayloadObj *idPayload) {
 //Write tcp frame buffer to socket and reset when done
 //Close on error
 func (c *APNSConnection) flushBufferToSocket() {
-	//if buffer not created, or zero length do nothing
+	//if buffer not created, or zero length, do nothing
 	if c.inFlightFrameByteBuffer == nil || c.inFlightFrameByteBuffer.Len() == 0 {
 		return
 	}
