@@ -43,6 +43,9 @@ type FeedbackResponse struct {
 const (
 	//Size of feedback header frame
 	FEEDBACK_RESPONSE_HEADER_FRAME_SIZE = 6
+	// gateway constants
+	APNSFeedbackServiceDevelopmentGateway = "feedback.sandbox.push.apple.com"
+	APNSFeedbackServiceProductionGateway  = "feedback.push.apple.com"
 )
 
 //Create a new apns feedback service connection with supplied config
